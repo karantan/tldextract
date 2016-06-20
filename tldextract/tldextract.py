@@ -67,8 +67,8 @@ CACHE_FILE_DEFAULT = os.path.join(os.path.dirname(__file__), '.tld_set')
 CACHE_FILE = os.path.expanduser(os.environ.get("TLDEXTRACT_CACHE", CACHE_FILE_DEFAULT))
 
 PUBLIC_SUFFIX_LIST_URLS = (
-    'https://publicsuffix.org/list/public_suffix_list.dat',
     'https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat',
+    'https://publicsuffix.org/list/public_suffix_list.dat',
 )
 
 PUBLIC_SUFFIX_RE = re.compile(r'^(?P<suffix>[.*!]*\w[\S]*)', re.UNICODE | re.MULTILINE)
@@ -99,9 +99,14 @@ class TLDExtract(object):
     '''A callable for extracting, subdomain, domain, and suffix components from
     a URL.'''
 
-    # TODO: Agreed with Pylint: too-many-arguments
-    def __init__(self, cache_file=CACHE_FILE, suffix_list_urls=PUBLIC_SUFFIX_LIST_URLS, # pylint: disable=too-many-arguments
-                 fallback_to_snapshot=True, include_psl_private_domains=False, extra_suffixes=()):
+    def __init__(
+        self,
+        cache_file=CACHE_FILE,
+        suffix_list_urls=None,
+        fallback_to_snapshot=True,
+        include_psl_private_domains=False,
+        extra_suffixes=(),
+    ):
         """
         Constructs a callable for extracting subdomain, domain, and suffix
         components from a URL.
@@ -131,16 +136,18 @@ class TLDExtract(object):
         included instead, set `include_psl_private_domains` to True.
 
         You can pass additional suffixes in `extra_suffixes` argument without changing list URL
-        """
+        """  # noqa
         suffix_list_urls = suffix_list_urls or ()
-        self.suffix_list_urls = tuple(url.strip() for url in suffix_list_urls if url.strip())
+        self.suffix_list_urls = tuple(
+            url.strip() for url in suffix_list_urls if url.strip())
 
         self.cache_file = os.path.expanduser(cache_file or '')
         self.fallback_to_snapshot = fallback_to_snapshot
-        if not (self.suffix_list_urls or self.cache_file or self.fallback_to_snapshot):
-            raise ValueError("The arguments you have provided disable all ways for tldextract "
-                             "to obtain data. Please provide a suffix list data, a cache_file, "
-                             "or set `fallback_to_snapshot` to `True`.")
+        if not (self.suffix_list_urls or self.cache_file or self.fallback_to_snapshot):  # noqa
+            raise ValueError(
+                "The arguments you have provided disable all ways for "
+                "tldextract to obtain data. Please provide a suffix list data,"
+                " a cache_file, or set `fallback_to_snapshot` to `True`.")
 
         self.include_psl_private_domains = include_psl_private_domains
         self.extra_suffixes = extra_suffixes
